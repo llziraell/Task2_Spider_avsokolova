@@ -24,7 +24,24 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 
 Widget::~Widget() {}
 
+void Widget::changeDirection() {
+    if (spiderPosition_.x() >= windowRect_.width() - 1) {
+        moveDirection_ = "Left";
+    }
+    if (spiderPosition_.x() <= 0) {
+        moveDirection_ = "Right";
+    }
+    if (spiderPosition_.y() >= windowRect_.height() -1) {
+        moveDirection_ = "Up";
+    }
+    if (spiderPosition_.y() <= 0) {
+        moveDirection_ = "Down";
+    }
+}
+
+
 void Widget::UpdateSpiderPosition() {
+    changeDirection();
     if (moveDirection_ == "Up") {
         spiderPosition_.setY(spiderPosition_.y() - shift);
     }
@@ -43,6 +60,7 @@ void Widget::UpdateSpiderPosition() {
 
 
 void Widget::SetSpiderPosition() {
+        //spiderMoveTimer_->start();
         int width = this->width();
         int height = this->height();
 
@@ -56,8 +74,7 @@ void Widget::SetSpiderPosition() {
 }
 
 void Widget::keyPressEvent(QKeyEvent *event) {
-        //spiderBoostTimer_->start(50);
-        spiderMoveTimer_->start();
+       spiderMoveTimer_->start();
     if (event->key() == Qt::Key_Up) {
             moveDirection_ = "Up";
     }
@@ -76,10 +93,11 @@ void Widget::keyPressEvent(QKeyEvent *event) {
 }
 
 void Widget::keyReleaseEvent(QKeyEvent *event) {
-    if (event->isAutoRepeat()){
+    Q_UNUSED(event);
+//    if (event->isAutoRepeat()){
 //        spiderBoostTimer_->start();
-        qDebug() << shift;
-    }
+//        qDebug() << shift;
+//    }
 
 //        if (spiderBoostTimer_) {
 //            spiderBoostTimer_->stop();
@@ -100,7 +118,7 @@ void Widget::paintEvent(QPaintEvent *event) {
 
     // Создаем экземпляр класса для низкоуровневого рисования
     QPainter painter(this);
-//    spiderMoveTimer_->start();
+// spiderMoveTimer_->start();
 
     painter.setRenderHint(QPainter::Antialiasing);  // Добавляем сглаживание
     if (spiderMoveTimer_->isActive()) {

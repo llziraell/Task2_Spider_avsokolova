@@ -31,6 +31,7 @@ private:
     void ShowMousePosition();
     void AddToTimerInterval(int milliseconds);
     void SetSpiderPosition();
+    void changeDirection();
 
     QString moveDirection_;
     QPoint spiderPosition_;
