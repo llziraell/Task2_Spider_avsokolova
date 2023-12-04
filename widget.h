@@ -2,8 +2,8 @@
 #define WIDGET_H
 
 #include <QWidget>
-#include <QPoint>
-#include <QRect>
+
+#include <QString>
 
 class Widget : public QWidget {
   Q_OBJECT
@@ -12,22 +12,29 @@ class Widget : public QWidget {
   Widget(QWidget *parent = nullptr);
   ~Widget();
 
+  signals:
+  void setSignal();
+
  protected:
   virtual void resizeEvent(QResizeEvent *event);
   virtual void keyPressEvent(QKeyEvent *event);
   virtual void paintEvent(QPaintEvent *event);
 
  private slots:
-  void SetSpiderPosition();
+  void UpdateSpiderPosition();
 
 private:
     void DrawEllipse(QPainter *painter);
     void DrawSpider(QPainter *painter);
     void ShowMousePosition();
+    void AddToTimerInterval(int milliseconds);
+    void SetSpiderPosition();
 
+    QString mpveDirection_;
     QPoint spiderPosition_;
     QRect windowRect_;
-    bool isDrawingWeb_;
     int shift = 10;
+    int timeInterval_;
+    QTimer *spiderMoveTimer_;
 };
 #endif  // WIDGET_H
