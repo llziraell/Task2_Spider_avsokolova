@@ -2,6 +2,7 @@
 #define SPIDER_H
 
 #include <QObject>
+#include <QPainter>
 
 class Spider : public QObject {
   Q_OBJECT
@@ -9,6 +10,9 @@ class Spider : public QObject {
   explicit Spider(QObject *parent = nullptr);
 
  signals:
+
+private:
+  void DrawSpider(QPainter *painter);
 };
 
 #endif  // SPIDER_H

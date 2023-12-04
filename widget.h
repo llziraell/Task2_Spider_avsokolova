@@ -23,12 +23,10 @@ class Widget : public QWidget {
   virtual void paintEvent(QPaintEvent *event);
   virtual void keyReleaseEvent(QKeyEvent *event);
 
-
  private slots:
   void UpdateSpiderPosition();
 
 private:
-    void DrawEllipse(QPainter *painter);
     void DrawSpider(QPainter *painter);
     void ShowMousePosition();
     void AddToTimerInterval(int milliseconds);
@@ -40,7 +38,7 @@ private:
     QString moveDirection_;
     QPoint spiderPosition_;
     QRect windowRect_;
-    int shift = 10;
+    float shift;
     int timeInterval_;
     int rotate;
     QTimer *spiderMoveTimer_;

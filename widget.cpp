@@ -11,15 +11,15 @@
 #include <QVector>
 #include <QTransform>
 #include <QString>
+#include <QObject>
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
 
-    QString currentPath = QDir::currentPath();
-    QDir parentDir(currentPath);
-    parentDir.cdUp();
-    QString parentPath = parentDir.absolutePath();
-    spiderImage_ = QPixmap(parentPath + "Task2_Spider_avsokolova" + "/Spider_image.png");
-
+    //QString currentPath = QDir::currentPath();
+    //QString parentPath = currentPath + "/Spider_image.png";
+    //spiderImage_ = QPixmap(parentPath);
+    QString parentPath = "/Users/llziraell/Desktop/Spider_image.png";
+    spiderImage_ = QPixmap(parentPath);
 
     windowRect_ = rect();
     SetSpiderPosition();
@@ -28,38 +28,42 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
     spiderBoostTimer_ = new QTimer(this);
     AddToTimerInterval(100);
 
-    // Cоединяем сигнал таймера о том, что время (интервал) прошло со слотом
-    // изменения позиции фигуры
+    shift = 10;
+
+    connect(spiderBoostTimer_, &QTimer::timeout, [this]{ shift*= 1.2; });
     connect(spiderMoveTimer_, &QTimer::timeout, this, &Widget::UpdateSpiderPosition);
 }
 
-Widget::~Widget() {}
-
-void Widget::changeDirection() {
-    if (spiderPosition_.x() >= windowRect_.width() - 1) {
-        moveDirection_ = "Left";
-    }
-    if (spiderPosition_.x() <= 0) {
-        moveDirection_ = "Right";
-    }
-    if (spiderPosition_.y() >= windowRect_.height() -1) {
-        moveDirection_ = "Up";
-    }
-    if (spiderPosition_.y() <= 0) {
-        moveDirection_ = "Down";
-    }
-    rotate = 180;
-    //spiderImage_.transformed(QTransform().rotate(90));
-    //repaint();
-
-    //spiderImage_.transformed(QTransform().rotate(180));
+Widget::~Widget() {
 }
 
+void Widget::changeDirection() {
+    if (spiderPosition_.x() >= windowRect_.width() - 50) {
+        moveDirection_ = "Left";
+        spiderPosition_.setX(spiderPosition_.x() - 50);
+        rotate = 180;
+    }
+    if (spiderPosition_.x() < 0) {
+        moveDirection_ = "Right";
+        spiderPosition_.setX(spiderPosition_.x() + 50);
+        rotate = 180;
+    }
+    if (spiderPosition_.y() >= windowRect_.height() - 50) {
+        moveDirection_ = "Up";
+        spiderPosition_.setY(spiderPosition_.y() - 50);
+        rotate = 180;
+    }
+    if (spiderPosition_.y() < 0) {
+        moveDirection_ = "Down";
+        spiderPosition_.setY(spiderPosition_.y() + 50);
+        rotate = 180;
+    }
+}
 
 void Widget::UpdateSpiderPosition() {
     rotate = 0;
 
-    QPoint newWebPoint = QPoint(spiderPosition_.x(), spiderPosition_.y());
+    QPoint newWebPoint = QPoint(spiderPosition_.x()+25, spiderPosition_.y()+25);
     webVector.append(newWebPoint);
 
     changeDirection();
@@ -84,7 +88,6 @@ void Widget::UpdateSpiderPosition() {
 
 
 void Widget::SetSpiderPosition() {
-        //spiderMoveTimer_->start();
         int width = this->width();
         int height = this->height();
 
@@ -95,13 +98,14 @@ void Widget::SetSpiderPosition() {
         spiderPosition_.setX(x);
         spiderPosition_.setY(y);
 
-        QPoint newWebPoint = QPoint(x, y);
+        QPoint newWebPoint = QPoint(x+ 25, y+25);
 
         webVector.append(newWebPoint);
 }
 
 void Widget::keyPressEvent(QKeyEvent *event) {
     spiderMoveTimer_->start();
+    if (event->key()) {
     if (event->key() == Qt::Key_Up) {
             moveDirection_ = "Up";
     }
@@ -117,22 +121,14 @@ void Widget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Space) {
     spiderMoveTimer_->stop();
     }
+     spiderBoostTimer_->start(50);
+    }
 }
 
 void Widget::keyReleaseEvent(QKeyEvent *event) {
     Q_UNUSED(event);
-//    if (event->isAutoRepeat()){
-//        spiderBoostTimer_->start();
-//        qDebug() << shift;
-//    }
-
-//        if (spiderBoostTimer_) {
-//            spiderBoostTimer_->stop();
-//            shift*=2;
-//            delete spiderMoveTimer_;
-//            spiderMoveTimer_ = nullptr;
-//        }
-
+    spiderBoostTimer_->stop();
+    shift = 10;
 }
 
 void Widget::resizeEvent(QResizeEvent *event) {
@@ -142,12 +138,9 @@ void Widget::resizeEvent(QResizeEvent *event) {
 
 void Widget::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
-
-    // Создаем экземпляр класса для низкоуровневого рисования
     QPainter painter(this);
-// spiderMoveTimer_->start();
 
-    painter.setRenderHint(QPainter::Antialiasing);  // Добавляем сглаживание
+    painter.setRenderHint(QPainter::Antialiasing);
     if (spiderMoveTimer_->isActive()) {
         DrawWeb(&painter);
         DrawSpider(&painter);
@@ -162,15 +155,10 @@ void Widget::DrawSpider(QPainter *painter) {
     painter->drawPixmap(rect, rotatedPixmap);
 }
 
-//сделать его непрозрачным)))
-
 void Widget::DrawWeb(QPainter *painter) {
-    QPen pen(Qt::red); // Красный цвет
-    pen.setWidth(5); // Устанавливаем толщину точки
-
-    // Устанавливаем созданное перо для рисования
+    QPen pen(Qt::black);
+    pen.setWidth(5);
     painter->setPen(pen);
-
     for (const auto& webPoint : webVector) {
         painter->drawPoint(webPoint);
     }
@@ -180,11 +168,8 @@ void Widget::AddToTimerInterval(int milliseconds) {
     int minInterval = 100;
     int maxInterval = 1000;
 
-    // Добавляем к текущему интервалу мс для дальнейшей проверки
     int newInterval = spiderMoveTimer_->interval() + milliseconds;
 
-    // Не даем выйти значению интерваля за указанные границы [minInterval,
-    // maxInterval]
     newInterval = qBound(minInterval, newInterval, maxInterval);
 
     spiderMoveTimer_->setInterval(newInterval);
