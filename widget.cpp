@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QTimer>
+#include <QDebug>
 
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
@@ -13,6 +14,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
     SetSpiderPosition();
 
     spiderMoveTimer_ = new QTimer(this);
+    spiderBoostTimer_ = new QTimer(this);
     AddToTimerInterval(100);
 
     // Cоединяем сигнал таймера о том, что время (интервал) прошло со слотом
@@ -23,16 +25,16 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 Widget::~Widget() {}
 
 void Widget::UpdateSpiderPosition() {
-    if (mpveDirection_ == "Up") {
+    if (moveDirection_ == "Up") {
         spiderPosition_.setY(spiderPosition_.y() - shift);
     }
-    if (mpveDirection_ == "Down") {
+    if (moveDirection_ == "Down") {
         spiderPosition_.setY(spiderPosition_.y() + shift);
     }
-    if (mpveDirection_ == "Left") {
+    if (moveDirection_ == "Left") {
         spiderPosition_.setX(spiderPosition_.x() - shift);
     }
-    if (mpveDirection_ == "Right") {
+    if (moveDirection_ == "Right") {
         spiderPosition_.setX(spiderPosition_.x() + shift);
     }
     repaint();
@@ -54,19 +56,38 @@ void Widget::SetSpiderPosition() {
 }
 
 void Widget::keyPressEvent(QKeyEvent *event) {
+        //spiderBoostTimer_->start(50);
+        spiderMoveTimer_->start();
     if (event->key() == Qt::Key_Up) {
-            mpveDirection_ = "Up";
+            moveDirection_ = "Up";
     }
     if (event->key() == Qt::Key_Down) {
-            mpveDirection_ = "Down";
+            moveDirection_ = "Down";
     }
     if (event->key() == Qt::Key_Left) {
-        mpveDirection_ = "Left";
+        moveDirection_ = "Left";
     }
     if (event->key() == Qt::Key_Right) {
-        mpveDirection_ = "Right";
+        moveDirection_ = "Right";
     }
-    //timer->start(50);
+    if (event->key() == Qt::Key_Space) {
+        spiderMoveTimer_->stop();
+    }
+}
+
+void Widget::keyReleaseEvent(QKeyEvent *event) {
+    if (event->isAutoRepeat()){
+//        spiderBoostTimer_->start();
+        qDebug() << shift;
+    }
+
+//        if (spiderBoostTimer_) {
+//            spiderBoostTimer_->stop();
+//            shift*=2;
+//            delete spiderMoveTimer_;
+//            spiderMoveTimer_ = nullptr;
+//        }
+
 }
 
 void Widget::resizeEvent(QResizeEvent *event) {
@@ -79,7 +100,8 @@ void Widget::paintEvent(QPaintEvent *event) {
 
     // Создаем экземпляр класса для низкоуровневого рисования
     QPainter painter(this);
-    spiderMoveTimer_->start();
+//    spiderMoveTimer_->start();
+
     painter.setRenderHint(QPainter::Antialiasing);  // Добавляем сглаживание
     if (spiderMoveTimer_->isActive()) {
         DrawSpider(&painter);
