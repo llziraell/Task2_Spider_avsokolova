@@ -7,9 +7,20 @@
 #include <QRect>
 #include <QTimer>
 #include <QDebug>
-
+#include <QPixmap>
+#include <QVector>
+#include <QTransform>
+#include <QString>
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
+
+    QString currentPath = QDir::currentPath();
+    QDir parentDir(currentPath);
+    parentDir.cdUp();
+    QString parentPath = parentDir.absolutePath();
+    spiderImage_ = QPixmap(parentPath + "Task2_Spider_avsokolova" + "/Spider_image.png");
+
+
     windowRect_ = rect();
     SetSpiderPosition();
 
@@ -37,22 +48,35 @@ void Widget::changeDirection() {
     if (spiderPosition_.y() <= 0) {
         moveDirection_ = "Down";
     }
+    rotate = 180;
+    //spiderImage_.transformed(QTransform().rotate(90));
+    //repaint();
+
+    //spiderImage_.transformed(QTransform().rotate(180));
 }
 
 
 void Widget::UpdateSpiderPosition() {
+    rotate = 0;
+
+    QPoint newWebPoint = QPoint(spiderPosition_.x(), spiderPosition_.y());
+    webVector.append(newWebPoint);
+
     changeDirection();
     if (moveDirection_ == "Up") {
         spiderPosition_.setY(spiderPosition_.y() - shift);
     }
     if (moveDirection_ == "Down") {
         spiderPosition_.setY(spiderPosition_.y() + shift);
+        rotate = 180;
     }
     if (moveDirection_ == "Left") {
         spiderPosition_.setX(spiderPosition_.x() - shift);
+        rotate = -90;
     }
     if (moveDirection_ == "Right") {
         spiderPosition_.setX(spiderPosition_.x() + shift);
+        rotate = 90;
     }
     repaint();
 }
@@ -70,11 +94,14 @@ void Widget::SetSpiderPosition() {
 
         spiderPosition_.setX(x);
         spiderPosition_.setY(y);
-        //isDrawingWeb_ = true;
+
+        QPoint newWebPoint = QPoint(x, y);
+
+        webVector.append(newWebPoint);
 }
 
 void Widget::keyPressEvent(QKeyEvent *event) {
-       spiderMoveTimer_->start();
+    spiderMoveTimer_->start();
     if (event->key() == Qt::Key_Up) {
             moveDirection_ = "Up";
     }
@@ -88,7 +115,7 @@ void Widget::keyPressEvent(QKeyEvent *event) {
         moveDirection_ = "Right";
     }
     if (event->key() == Qt::Key_Space) {
-        spiderMoveTimer_->stop();
+    spiderMoveTimer_->stop();
     }
 }
 
@@ -122,16 +149,31 @@ void Widget::paintEvent(QPaintEvent *event) {
 
     painter.setRenderHint(QPainter::Antialiasing);  // Добавляем сглаживание
     if (spiderMoveTimer_->isActive()) {
+        DrawWeb(&painter);
         DrawSpider(&painter);
     }
 }
 
 void Widget::DrawSpider(QPainter *painter) {
-    int width = 5;
-    int height = 5;
+    int width = 50;
+    int height = 50;
+    QRect rect(spiderPosition_.x(), spiderPosition_.y(), width, height);
+    QPixmap rotatedPixmap = spiderImage_.transformed(QTransform().rotate(rotate));
+    painter->drawPixmap(rect, rotatedPixmap);
+}
 
-    painter->setBrush(QBrush(Qt::red, Qt::SolidPattern));
-    painter->drawEllipse(spiderPosition_, width, height);
+//сделать его непрозрачным)))
+
+void Widget::DrawWeb(QPainter *painter) {
+    QPen pen(Qt::red); // Красный цвет
+    pen.setWidth(5); // Устанавливаем толщину точки
+
+    // Устанавливаем созданное перо для рисования
+    painter->setPen(pen);
+
+    for (const auto& webPoint : webVector) {
+        painter->drawPoint(webPoint);
+    }
 }
 
 void Widget::AddToTimerInterval(int milliseconds) {
