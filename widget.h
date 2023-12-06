@@ -5,7 +5,9 @@
 
 #include <QString>
 #include <QPixmap>
-#include <QDir>
+#include <QPoint>
+
+#include "spider.h"
 
 class Widget : public QWidget {
   Q_OBJECT
@@ -13,36 +15,25 @@ class Widget : public QWidget {
  public:
   Widget(QWidget *parent = nullptr);
   ~Widget();
+  QTimer *spiderMoveTimer_;
+  QTimer *spiderBoostTimer_;
 
-  signals:
-  void setSignal();
+protected:
+    virtual void resizeEvent(QResizeEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void paintEvent(QPaintEvent *event);
 
- protected:
-  virtual void resizeEvent(QResizeEvent *event);
-  virtual void keyPressEvent(QKeyEvent *event);
-  virtual void paintEvent(QPaintEvent *event);
-  virtual void keyReleaseEvent(QKeyEvent *event);
-
- private slots:
+private slots:
   void UpdateSpiderPosition();
 
 private:
-    void DrawSpider(QPainter *painter);
-    void ShowMousePosition();
     void AddToTimerInterval(int milliseconds);
-    void SetSpiderPosition();
-    void changeDirection();
-    void DrawWeb(QPainter *painter);
-
+    QPoint SetSpiderPosition();
+    //void DrawWeb(QPainter *painter);
     QVector<QPoint> webVector;
-    QString moveDirection_;
-    QPoint spiderPosition_;
     QRect windowRect_;
-    float shift;
     int timeInterval_;
-    int rotate;
-    QTimer *spiderMoveTimer_;
-    QTimer *spiderBoostTimer_;
-    QPixmap spiderImage_;
+    Spider *spider;
+
 };
 #endif  // WIDGET_H
